@@ -1,0 +1,209 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:cc="http://xmlns.jcp.org/jsf/composite"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core">
+
+    <!-- INTERFACE -->
+    <cc:interface>
+
+        <cc:attribute name="bean" required="true"/>
+        <cc:attribute name="contexto" required="true"/>
+        <cc:attribute name="entidad" required="true"/>
+
+    </cc:interface>
+
+    <!-- IMPLEMENTATION -->
+    <cc:implementation>
+        <p:outputPanel>
+
+
+
+
+
+
+            <p:outputPanel styleClass="imagen">
+
+
+                <div id="container">
+
+                    <div id="pickfiles"  style="width: auto; height: 200px;cursor: pointer" class="TexAlCenter">
+
+                        <div id="textDrag"  style="z-index: 2;position: relative; top:calc(20% + 40px);margin: 0 auto 0 auto">
+                            <span  class="FontVoltBold White Fs25 LeadenBack Wid90 Opac50 Padding5" style="padding-left: 50px; padding-right: 50px;">Arrastra Aqui!!</span>
+                        </div>
+                        <p:graphicImage library="img" name="default.jpg"  styleClass="imagen"
+                                        style="max-width: 100%;max-height: 100%;vertical-align: middle;z-index: 1;margin: 0 auto 0 auto"
+                                        rendered="#{empty cc.attrs.bean.newImageName and (cc.attrs.contexto == 'creacion')}"/>
+
+
+
+                        <p:graphicImage  value="#{imageResolutor.streamedImageById}" cache="FALSE" 
+                                         rendered="#{(empty cc.attrs.bean.newImageName and cc.attrs.contexto == 'edicion')}"
+                                         styleClass="imagen"
+                                         style="max-width: 100%;max-height: 100%;z-index: 1;position: relative;top:-40px; -webkit-filter: blur(1px);
+                                         -moz-filter: blur(1px);
+                                         -o-filter: blur(1px);
+                                         -ms-filter: blur(1px);
+                                         filter: blur(1px);">
+                            <f:param name="id" value="#{cc.attrs.bean['actual']['id']}"/>
+                            <f:param name="entidad" value="#{cc.attrs.entidad}"/>
+                        </p:graphicImage>
+                    </div>
+                </div>
+
+
+                <div id="thumb" style="width: auto; height: 200px;" class="TexAlCenter">
+                    <div id="undo"  style="z-index: 2;position: relative; top:calc(20% + 40px);margin: 0 auto 0 auto">
+                        <p:commandLink immediate="true"
+                                       style="padding-left: 50px; padding-right: 50px;text-decoration: none!important"
+                                       styleClass="FontVoltBold White Fs25 LeadenBack Wid90 Opac70 Padding5"
+                                       actionListener="#{imageCurrent.undo()}" oncomplete="undo();"><i class="fa fa-undo White Fs25"></i>
+                        </p:commandLink>
+                    </div>
+
+                </div>
+
+
+                <div class="EmptyBox20"></div>
+
+                <div id="filelist" style="text-align: center;height: 20px">Your browser doesn't have Flash, Silverlight or HTML5 support.</div>
+
+
+
+            </p:outputPanel>
+
+
+
+
+
+
+            <script type="text/javascript">
+                // Custom example logic
+
+                var uploader = new plupload.Uploader({
+                    runtimes: 'html5,flash,silverlight,html4',
+                    browse_button: 'pickfiles', // you can pass in id...
+                    container: document.getElementById('container'),
+                    drop_element: document.getElementById('container'), // ... or DOM Element itself
+
+                    max_file_count: 1,
+                    chunk_size: '2mb',
+                    resize: {
+                        width: 400,
+                        height: 280,
+                        quality: 90,
+                        crop: true // crop to exact dimensions
+                    },
+                    url: '#{request.contextPath}/servlet/fileUpload',
+                    filters: {
+                        max_file_size: '40mb',
+                        // Resize images on clientside if we can
+
+                        mime_types: [
+                            {title: "Image files", extensions: "jpeg,jpg,gif,png"},
+                            {title: "Zip files", extensions: "zip"}
+                        ]
+                    },
+                    flash_swf_url: '/plupload/Moxie.swf',
+                    // Silverlight settings
+                    silverlight_xap_url: '/plupload/Moxie.xap',
+                    init: {
+                        PostInit: function () {
+                            document.getElementById('filelist').innerHTML = '';
+                        },
+                        UploadProgress: function (up, file) {
+
+                          document.getElementById("filelist").innerHTML = '<span>' + file.percent + '%</span>';
+                            //$("#filelist").delay(500).fadeTo("slow", 0);
+                        },
+                        
+                        UploadComplete: function (up, file) {
+
+                            document.getElementById('filelist').innerHTML = '<span> Listo !!</span>';
+                            $("#filelist").delay(1000).fadeTo("slow", 0);
+                        },
+                        Error: function (up, err) {
+                            //document.getElementById('console').innerHTML += "\nError #" + err.code + ": " + err.message;
+                        }
+                    }
+                });
+
+
+                
+                uploader.bind("FilesAdded", handlePluploadFilesAdded);
+                uploader.init();
+                $("#thumb").hide();
+
+
+
+                function handleProgress(up, file) {
+                    
+                }
+
+
+                function undo() {
+
+                    $("#thumb img:last-child").remove();
+                    $("#thumb").hide();
+                    $("#container").show();
+
+                    
+                    document.getElementById('filelist').innerHTML = '';
+                    $("#filelist").delay(500).fadeTo("slow", 100);
+                }
+
+                function handlePluploadFilesAdded(uploader, files) {
+                    var file = files[0];
+                    showImagePreview(file);
+                    uploader.start();
+                    //document.getElementById('filelist').innerHTML = '<div id="' + file.id + '" style="text-align: center">Previsualizando .... (' + plupload.formatSize(file.size) + ')<b></b></div>';
+                    
+                    
+                }
+
+                function showImagePreview(file) {
+                    var item = $("#thumb");
+                    item.show();
+                    var image = $(new Image()).appendTo(item);
+                    $("#container").hide();
+
+                    // Create an instance of the mOxie Image object. This
+                    // utility object provides several means of reading in
+                    // and loading image data from various sources.
+                    // --
+                    // Wiki: https://github.com/moxiecode/moxie/wiki/Image
+                    var preloader = new mOxie.Image();
+                    // Define the onload BEFORE you execute the load()
+                    // command as load() does not execute async.
+                    preloader.onload = function () {
+                        // This will scale the image (in memory) before it
+                        // tries to render it. This just reduces the amount
+                        // of Base64 data that needs to be rendered.
+                        preloader.downsize(400, 280);
+                        // Now that the image is preloaded, grab the Base64
+                        // encoded data URL. This will show the image
+                        // without making an Network request using the
+                        // client-side file binary.
+                        image.prop("src", preloader.getAsDataURL());
+                        image.prop("style", "max-width: 100%;max-height: 100%;z-index: 1;position: relative;top:-40px");
+                        // NOTE: These previews "work" in the FLASH runtime.
+                        // But, they look seriously junky-to-the-monkey.
+                        // Looks like they are only using like 256 colors.
+                    };
+                    // Calling the .getSource() on the file will return an
+                    // instance of mOxie.File, which is a unified file
+                    // wrapper that can be used across the various runtimes.
+                    // --
+                    // Wiki: https://github.com/moxiecode/plupload/wiki/File
+                    preloader.load(file.getSource());
+
+
+                }
+            </script>
+        </p:outputPanel>
+    </cc:implementation>
+</html>

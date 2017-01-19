@@ -1,0 +1,28 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/WEB-INF/template.xhtml">
+
+    <ui:define name="content">
+        <div class="Container100">
+            <div class="Card TexAlCenter">
+                <h1 class="BigTopic">Nueva Cuenta</h1>
+                <h:form>
+                    <p:growl id="mensajes" autoUpdate="true"/>
+                    <p:panelGrid columns="1" id="panel">
+                        <p:inputText value="#{cuentaBean.actual.empresa}" placeholder="Empresa"/>
+                        <p:inputText value="#{cuentaBean.actual.cod}" placeholder="Cod."/>
+                        <p:inputText value="#{cuentaBean.actual.name}" placeholder="Nombre"/>
+                        <p:inputText value="#{cuentaBean.actual.saldoMinimo}" placeholder="Saldo minimo"/>
+                    </p:panelGrid>
+                    <div class="EmptyBox10"></div>
+                    <p:commandButton value="Crear" action="#{cuentaBean.crear()}" update="mensajes panel"/>
+                </h:form>
+            </div>
+        </div>
+
+    </ui:define>
+
+</ui:composition>
